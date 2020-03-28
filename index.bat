@@ -1,0 +1,1 @@
+start "" "projects/Processing-2048_Game/index/index.pde"
