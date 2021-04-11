@@ -14,8 +14,6 @@ extraction:
     prepare:
       packages:
         - python3.8
-    after_prepare:
-      - install_processing.sh
     index:
       build_command:
         - python3.8 build.py
