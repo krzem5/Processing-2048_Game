@@ -155,7 +155,6 @@ with open("build/main.java","wb") as f,open("src/main/Main.pde","rb") as mf:
 				o_dt=o_dt[:i+m.start(2)]+b" public "+o_dt[i+m.start(2):]
 				i+=8
 		i+=m.end(0)
-	print(o_dt)
 	f.write(o_dt.replace(b"\r\n",b"\n")+s_func+b"}\nstatic public void main(String[] a){\nString[] a_a=new String[]{\"main\"};\nif (a!=null){\nPApplet.main(concat(a_a,a));\n}\nelse{\nPApplet.main(a_a);\n}\n}\n}")
 if (subprocess.run(["javac","-d","build","-classpath",(";" if os.name=="nt" else ":").join(lib),"build/main.java"]).returncode!=0):
 	sys.exit(1)
