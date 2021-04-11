@@ -7,9 +7,9 @@ import zipfile
 
 
 SETUP_FUNC_REGEX=re.compile(br"(?:^|\s|;)void\s+setup\s*\([^\)]*?\)\s*\{",re.M)
-FUNCTION_DECL_REGEX=re.compile(br"(^|;)\s*((?:public|private|protected|final|static)\s+)*(?:void|int|float|double|String|char|byte|boolean)(?:\s*\[\s*\])?\s+[a-zA-Z0-9]+\s*\(",re.M)
+FUNCTION_DECLARATION_REGEX=re.compile(br"(^|;|\s)\s*((?:public|private|protected|final|static|abstract|transient|synchronized|volatile)\s+)*([a-zA-Z0-9_]+)(?:\s*\[\s*\])?\s+[a-zA-Z0-9_]+\s*\(",re.M)
 PROCESSING_SETTING_METHODS=[b"smooth",b"noSmooth",b"size",b"pixelDensity",b"fullScreen"]
-IDENTIFIER_CHARS=b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+IDENTIFIER_CHARS=b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
 WHITE_SPACE_CHARS=b" \t\n\r\f\v"
 
 
@@ -140,17 +140,20 @@ with open("build/main.java","wb") as f,open("src/main/Main.pde","rb") as mf:
 				o_dt+=b"\n"+_preprocess(rf.read())+b"\n"
 	i=0
 	while (True):
-		m=FUNCTION_DECL_REGEX.search(o_dt[i:])
+		m=FUNCTION_DECLARATION_REGEX.search(o_dt[i:])
 		if (m is None):
 			break
-		if (not m.group(2)):
-			o_dt=o_dt[:i+m.end(1)]+b" public "+o_dt[i+m.end(1):]
-		elif (b"private" not in m.group(2) and b"protected" not in m.group(2)):
-			o_dt=o_dt[:i+m.start(2)]+b" public "+o_dt[i+m.start(2):]
+		if (m.group(3) not in [b"new",b"else"]):
+			if (not m.group(2)):
+				o_dt=o_dt[:i+m.end(1)]+b" public "+o_dt[i+m.end(1):]
+				i+=8
+			elif (b"public" not in m.group(2) and b"private" not in m.group(2) and b"protected" not in m.group(2)):
+				o_dt=o_dt[:i+m.start(2)]+b" public "+o_dt[i+m.start(2):]
+				i+=8
 		i+=m.end(0)
-	f.write(o_dt+s_func+b"}\nstatic public void main(String[] a){\nString[] a_a=new String[]{\"main\"};\nif (a!=null){\nPApplet.main(concat(a_a,a));\n}\nelse{\nPApplet.main(a_a);\n}\n}\n}")
-print(lib)
-if (subprocess.run(["javac","-classpath",";".join(lib),"-d","build","build/main.java"]).returncode!=0):
+	print(o_dt)
+	f.write(o_dt.replace(b"\r\n",b"\n")+s_func+b"}\nstatic public void main(String[] a){\nString[] a_a=new String[]{\"main\"};\nif (a!=null){\nPApplet.main(concat(a_a,a));\n}\nelse{\nPApplet.main(a_a);\n}\n}\n}")
+if (subprocess.run(["javac","-d","build","-classpath",(";" if os.name=="nt" else ":").join(lib),"build/main.java"]).returncode!=0):
 	sys.exit(1)
 with zipfile.ZipFile("build/main.jar","w") as zf:
 	print("Writing: META-INF/MANIFEST.MF")
