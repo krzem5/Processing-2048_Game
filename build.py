@@ -133,9 +133,13 @@ with open("build/main.java","wb") as f,open("src/main/Main.pde","rb") as mf:
 					mf_dt=mf_dt[:k[1]+i+m.start()]+b" "*(m.end()-m.start())+mf_dt[k[1]+i+m.end():]
 					i+=m.end()
 		o_dt+=mf_dt
+	for r,_,fl in os.walk("src"):
+		r=r.replace("\\","/").strip("/")+"/"
+		for _f in fl:
+			print(r+_f)
 	for fp in os.listdir("src/main"):
-		fp=f"src/main/{fp}".lower()
-		if (os.path.isfile(fp) and fp[-4:]==".pde" and fp!="src/main/main.pde"):
+		fp=f"src/main/{fp}"
+		if (os.path.isfile(fp) and fp[-4:].lower()==".pde" and fp.lower()!="src/main/main.pde"):
 			with open(fp,"rb") as rf:
 				o_dt+=b"\n"+_preprocess(rf.read())+b"\n"
 	i=0
